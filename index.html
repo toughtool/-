@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="공구수리">
+<meta name="theme-color" content="#1D4ED8">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>공구수리 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<style>
+:root {
+  --primary:#2563EB;--primary-dark:#1D4ED8;--primary-light:#EFF6FF;
+  --amber:#D97706;--amber-light:#FFFBEB;
+  --green:#16A34A;--green-light:#F0FDF4;
+  --red:#DC2626;--red-light:#FEF2F2;
+  --gray:#6B7280;--gray-light:#F9FAFB;
+  --border:#E5E7EB;--text:#111827;--text-sub:#6B7280;
+  --bg:#F3F4F6;--white:#FFFFFF;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:#dde1e7;font-family:'Noto Sans KR',sans-serif;}
+
+/* Setup screen */
+#setup-screen{
+  position:fixed;inset:0;background:var(--white);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;z-index:200;
+}
+#setup-screen.hidden{display:none;}
+.setup-logo{
+  width:72px;height:72px;background:var(--primary);border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:36px;margin-bottom:24px;
+}
+.setup-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.setup-sub{font-size:14px;color:var(--text-sub);text-align:center;line-height:1.6;margin-bottom:28px;}
+.setup-step{
+  width:100%;max-width:380px;background:var(--gray-light);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
+}
+.setup-step-num{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;}
+.setup-step-text{font-size:13px;color:var(--text);line-height:1.5;}
+.setup-step a{color:var(--primary);font-weight:600;}
+
+.setup-section{width:100%;max-width:380px;margin-bottom:16px;}
+.setup-section label{font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:6px;display:block;}
+.setup-input{
+  width:100%;padding:12px;border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:14px;color:var(--text);
+  font-family:'Noto Sans KR',sans-serif;background:var(--white);
+}
+.setup-input:focus{outline:none;border-color:var(--primary);}
+.setup-btn{
+  width:100%;max-width:380px;padding:14px;
+  background:var(--primary);color:white;border:none;
+  border-radius:var(--radius-sm);font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+}
+
+/* App */
+.app-wrap{
+  max-width:430px;margin:0 auto;height:100vh;height:100dvh;
+  display:flex;flex-direction:column;background:var(--bg);overflow:hidden;
+}
+.header{
+  background:var(--primary);padding:14px 16px 12px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.header-left{display:flex;align-items:center;gap:10px;}
+.header-icon{color:white;font-size:24px;}
+.header-title{font-size:17px;font-weight:700;color:white;}
+.header-sub{font-size:11px;color:rgba(255,255,255,0.75);}
+.header-btn{
+  width:36px;height:36px;border:none;background:rgba(255,255,255,0.2);
+  border-radius:8px;color:white;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.notif-dot{
+  position:absolute;top:6px;right:6px;
+  width:8px;height:8px;background:#EF4444;border-radius:50%;
+  border:1.5px solid var(--primary);display:none;
+}
+.notif-dot.show{display:block;}
+
+.content-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.screen{display:none;padding:12px 12px 80px;}
+.screen.active{display:block;}
+
+/* Bottom nav */
+.bottom-nav{
+  display:flex;background:var(--white);
+  border-top:1px solid var(--border);flex-shrink:0;
+  box-shadow:0 -2px 8px rgba(0,0,0,0.06);
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:8px 4px 10px;border:none;background:none;cursor:pointer;
+  color:var(--text-sub);font-size:10px;font-weight:500;gap:3px;
+  font-family:'Noto Sans KR',sans-serif;transition:color 0.15s;
+}
+.nav-item i{font-size:22px;}
+.nav-item.active{color:var(--primary);}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.stat-card{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);padding:14px;box-shadow:var(--shadow);
+}
+.stat-label{font-size:11px;color:var(--text-sub);margin-bottom:4px;}
+.stat-num{font-size:28px;font-weight:700;line-height:1;}
+.blue{color:var(--primary);}.amber{color:var(--amber);}.green{color:var(--green);}.red{color:var(--red);}
+
+/* Badges */
+.badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;
+}
+.badge-blue{background:var(--primary-light);color:var(--primary);}
+.badge-amber{background:var(--amber-light);color:var(--amber);}
+.badge-green{background:var(--green-light);color:var(--green);}
+.badge-gray{background:var(--gray-light);color:var(--gray);}
+.badge-red{background:var(--red-light);color:var(--red);}
+
+/* Repair item */
+.repair-item{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);padding:14px 16px;
+  margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.repair-item:active{border-color:var(--primary);box-shadow:var(--shadow-md);}
+.ri-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.ri-num{font-size:11px;color:var(--text-sub);margin-bottom:2px;}
+.ri-name{font-size:15px;font-weight:600;color:var(--text);}
+.ri-product{font-size:12px;color:var(--text-sub);margin-top:3px;}
+.ri-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
+}
+.ri-date{font-size:11px;color:var(--text-sub);display:flex;align-items:center;gap:4px;}
+.ri-price{font-size:13px;font-weight:600;color:var(--text);}
+
+/* Date label */
+.date-label{
+  font-size:11px;font-weight:600;color:var(--text-sub);
+  padding:4px 10px;background:var(--border);
+  border-radius:20px;display:inline-block;margin-bottom:8px;margin-top:4px;
+}
+
+/* Filter chips */
+.filter-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;}
+.filter-wrap::-webkit-scrollbar{display:none;}
+.chip{
+  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--white);font-size:12px;font-weight:500;color:var(--text-sub);
+  cursor:pointer;white-space:nowrap;transition:all 0.15s;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.chip.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+/* Form */
+.form-section{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);padding:14px 16px;
+  margin-bottom:10px;box-shadow:var(--shadow);
+}
+.fs-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.fs-title i{color:var(--primary);font-size:16px;}
+.form-group{margin-bottom:12px;}
+.form-group:last-child{margin-bottom:0;}
+.form-label{font-size:12px;font-weight:500;color:var(--text-sub);margin-bottom:5px;display:block;}
+.form-control{
+  width:100%;padding:10px 12px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:14px;color:var(--text);
+  background:var(--white);font-family:'Noto Sans KR',sans-serif;
+  transition:border-color 0.15s;-webkit-appearance:none;
+}
+.form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+textarea.form-control{resize:none;line-height:1.5;}
+
+/* Photo upload */
+.photo-upload-area{
+  border:2px dashed var(--border);border-radius:var(--radius);
+  padding:28px 16px;text-align:center;background:var(--gray-light);cursor:pointer;
+}
+.photo-upload-area i{font-size:36px;color:var(--text-sub);}
+.photo-upload-area p{font-size:13px;color:var(--text-sub);margin-top:8px;}
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;}
+.photo-thumb{
+  aspect-ratio:1;border-radius:8px;background:var(--border);
+  overflow:hidden;position:relative;cursor:pointer;
+}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.rm-photo{
+  position:absolute;top:2px;right:2px;width:18px;height:18px;
+  border-radius:50%;background:rgba(0,0,0,0.6);color:white;
+  font-size:10px;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Buttons */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:13px;border-radius:var(--radius-sm);border:none;
+  font-size:14px;font-weight:600;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;transition:opacity 0.15s,transform 0.1s;
+}
+.btn:active{transform:scale(0.98);}
+.btn+.btn{margin-top:8px;}
+.btn-primary{background:var(--primary);color:white;}
+.btn-outline{background:var(--white);color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:var(--red);color:white;}
+.btn-success{background:var(--green);color:white;}
+
+/* Detail */
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:8px;}
+.card-pad{padding:14px 16px;}
+.detail-info{padding:14px 16px;}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.detail-num{font-size:11px;color:var(--text-sub);margin-bottom:3px;}
+.detail-name{font-size:18px;font-weight:700;color:var(--text);}
+.detail-phone{font-size:13px;color:var(--text-sub);margin-top:2px;display:flex;align-items:center;gap:4px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-key{font-size:13px;color:var(--text-sub);}
+.info-val{font-size:13px;font-weight:500;color:var(--text);text-align:right;max-width:55%;}
+
+/* Stepper */
+.stepper{display:flex;align-items:flex-start;}
+.step-col{flex:1;display:flex;flex-direction:column;align-items:center;}
+.step-circle{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;
+  border:2px solid var(--border);background:var(--white);color:var(--text-sub);
+}
+.step-circle.done{background:var(--green);border-color:var(--green);color:white;}
+.step-circle.current{background:var(--primary);border-color:var(--primary);color:white;}
+.step-text{font-size:10px;color:var(--text-sub);margin-top:5px;text-align:center;font-weight:500;}
+.step-text.active{color:var(--primary);}
+.step-line{flex:1;height:2px;background:var(--border);margin-top:14px;}
+.step-line.done{background:var(--green);}
+
+/* Estimate */
+.estimate-total{
+  background:var(--primary-light);border-radius:var(--radius-sm);
+  padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+}
+.estimate-total-label{font-size:13px;font-weight:600;color:var(--primary);}
+.estimate-total-val{font-size:18px;font-weight:700;color:var(--primary);}
+
+/* Photos in detail */
+.detail-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.detail-photo{aspect-ratio:1;border-radius:8px;background:var(--gray-light);overflow:hidden;border:1px solid var(--border);}
+.detail-photo img{width:100%;height:100%;object-fit:cover;}
+.no-photo{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.no-photo i{font-size:24px;color:var(--border);}
+.no-photo span{font-size:10px;color:var(--text-sub);}
+
+/* Memo */
+.memo-box{background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius-sm);padding:12px;font-size:13px;color:#92400E;line-height:1.6;}
+
+/* Notification center */
+.notif-panel{
+  position:fixed;top:58px;right:8px;width:300px;
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow-md);
+  z-index:100;max-height:400px;overflow-y:auto;display:none;
+}
+.notif-panel.open{display:block;}
+.notif-header{
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  font-size:13px;font-weight:600;color:var(--text);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.notif-item{
+  padding:12px 14px;border-bottom:1px solid var(--border);
+}
+.notif-item:last-child{border-bottom:none;}
+.notif-item.unread{background:var(--primary-light);}
+.notif-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.notif-body{font-size:12px;color:var(--text-sub);}
+.notif-time{font-size:11px;color:var(--text-sub);margin-top:4px;}
+.notif-empty{padding:24px;text-align:center;color:var(--text-sub);font-size:13px;}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1F2937;color:white;padding:10px 20px;border-radius:30px;
+  font-size:13px;font-weight:500;opacity:0;transition:all 0.3s;
+  z-index:150;white-space:nowrap;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:130;display:none;align-items:flex-end;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal-sheet{
+  background:var(--white);border-radius:20px 20px 0 0;
+  width:100%;max-width:430px;padding:20px 16px 32px;
+  max-height:80vh;overflow-y:auto;
+}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;}
+
+/* Loading */
+.loading{
+  position:fixed;inset:0;background:rgba(255,255,255,0.8);
+  display:none;align-items:center;justify-content:center;
+  z-index:180;flex-direction:column;gap:12px;
+}
+.loading.show{display:flex;}
+.spinner{
+  width:40px;height:40px;border:3px solid var(--border);
+  border-top-color:var(--primary);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:14px;color:var(--text-sub);}
+
+/* Section title */
+.section-title{
+  font-size:12px;font-weight:600;color:var(--text-sub);
+  margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.05em;
+}
+
+/* Empty */
+.empty{text-align:center;padding:48px 16px;color:var(--text-sub);}
+.empty i{font-size:48px;color:var(--border);}
+.empty p{margin-top:12px;font-size:14px;}
+
+/* Install banner */
+.install-banner{
+  background:var(--primary);color:white;
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-shrink:0;
+}
+.install-banner.hidden{display:none;}
+.install-text{font-size:12px;line-height:1.4;}
+.install-text strong{font-size:13px;font-weight:700;}
+.install-btn{
+  background:white;color:var(--primary);border:none;
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;
+  cursor:pointer;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;
+}
+
+/* Offline banner */
+.offline-banner{
+  background:var(--red);color:white;padding:8px 16px;
+  text-align:center;font-size:12px;font-weight:600;
+  display:none;flex-shrink:0;
+}
+.offline-banner.show{display:block;}
+
+/* Connection status */
+.conn-dot{
+  width:8px;height:8px;border-radius:50%;background:#4ADE80;
+  display:inline-block;margin-right:4px;
+}
+.conn-dot.offline{background:#EF4444;}
+
+/* In-app notification */
+.in-app-notif{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--white);border:1px solid var(--border);border-left:4px solid var(--primary);
+  border-radius:var(--radius);padding:12px 16px;
+  box-shadow:var(--shadow-md);z-index:160;
+  width:calc(100% - 24px);max-width:406px;
+  transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  cursor:pointer;
+}
+.in-app-notif.show{transform:translateX(-50%) translateY(0);}
+.ian-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.ian-body{font-size:12px;color:var(--text-sub);}
+</style>
+</head>
+<body>
+
+<!-- Firebase Setup Screen -->
+<div id="setup-screen">
+  <div class="setup-logo"><i class="ti ti-tool"></i></div>
+  <div class="setup-title">공구수리 관리 앱</div>
+  <div class="setup-sub">직원 간 실시간 공유를 위해<br>Firebase 프로젝트 정보를 입력하세요</div>
+
+  <div class="setup-step">
+    <div class="setup-step-num">STEP 1</div>
+    <div class="setup-step-text">
+      <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> 접속<br>
+      → 프로젝트 만들기 → 앱 추가(웹) → 설정값 복사
+    </div>
+  </div>
+  <div class="setup-step">
+    <div class="setup-step-num">STEP 2</div>
+    <div class="setup-step-text">
+      Firestore Database 생성 (테스트 모드로 시작)<br>
+      Cloud Messaging 활성화 (알림 발송용)
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <label>Firebase API Key</label>
+    <input class="setup-input" id="cfg-apiKey" placeholder="AIzaSy...">
+  </div>
+  <div class="setup-section">
+    <label>Project ID</label>
+    <input class="setup-input" id="cfg-projectId" placeholder="my-repair-shop">
+  </div>
+  <div class="setup-section">
+    <label>App ID</label>
+    <input class="setup-input" id="cfg-appId" placeholder="1:123456789:web:abc...">
+  </div>
+  <div class="setup-section">
+    <label>VAPID Key (Cloud Messaging → 웹 푸시 인증서)</label>
+    <input class="setup-input" id="cfg-vapid" placeholder="BNzt...">
+  </div>
+  <div class="setup-section">
+    <label>업체 이름</label>
+    <input class="setup-input" id="cfg-shopname" placeholder="○○공구수리">
+  </div>
+  <div class="setup-section">
+    <label>내 이름 (직원 구분용)</label>
+    <input class="setup-input" id="cfg-myname" placeholder="홍길동">
+  </div>
+
+  <button class="setup-btn" onclick="saveConfig()">저장하고 시작하기</button>
+  <button class="setup-btn" style="background:var(--gray);margin-top:8px;" onclick="demoMode()">데모 모드로 체험하기</button>
+</div>
+
+<!-- Main App -->
+<div class="app-wrap" id="main-app" style="display:none;">
+
+  <!-- Offline -->
+  <div class="offline-banner" id="offline-banner">오프라인 상태 — 변경사항은 연결 시 동기화됩니다</div>
+
+  <!-- Install banner -->
+  <div class="install-banner hidden" id="install-banner">
+    <div class="install-text">
+      <strong>홈 화면에 앱 설치하기</strong><br>
+      앱처럼 사용 가능 · 빠른 접근
+    </div>
+    <button class="install-btn" onclick="installApp()">설치</button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <i class="ti ti-tool header-icon"></i>
+      <div>
+        <div class="header-title" id="shop-name-header">공구수리</div>
+        <div class="header-sub">
+          <span class="conn-dot" id="conn-dot"></span>
+          <span id="conn-text">연결 중...</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="header-btn" onclick="toggleNotif()" id="notif-btn">
+        <i class="ti ti-bell"></i>
+        <div class="notif-dot" id="notif-dot"></div>
+      </button>
+      <button class="header-btn" onclick="showScreen('settings')">
+        <i class="ti ti-settings"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification panel -->
+  <div class="notif-panel" id="notif-panel">
+    <div class="notif-header">
+      알림
+      <button onclick="clearNotifs()" style="border:none;background:none;font-size:11px;color:var(--primary);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">모두 읽음</button>
+    </div>
+    <div id="notif-list"><div class="notif-empty">알림이 없습니다</div></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content-area">
+
+    <!-- 홈 -->
+    <div class="screen active" id="screen-home">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">전체 접수</div><div class="stat-num blue" id="stat-total">0</div></div>
+        <div class="stat-card"><div class="stat-label">견적 대기</div><div class="stat-num amber" id="stat-estimate">0</div></div>
+        <div class="stat-card"><div class="stat-label">수리 완료</div><div class="stat-num green" id="stat-done">0</div></div>
+        <div class="stat-card"><div class="stat-label">오늘 입고</div><div class="stat-num red" id="stat-today">0</div></div>
+      </div>
+      <div class="section-title">최근 접수</div>
+      <div id="home-list"></div>
+    </div>
+
+    <!-- 목록 -->
+    <div class="screen" id="screen-list">
+      <div class="filter-wrap" id="filter-chips">
+        <div class="chip active" onclick="filterList('전체',this)">전체</div>
+        <div class="chip" onclick="filterList('접수완료',this)">접수완료</div>
+        <div class="chip" onclick="filterList('견적대기',this)">견적대기</div>
+        <div class="chip" onclick="filterList('수리중',this)">수리중</div>
+        <div class="chip" onclick="filterList('완료',this)">완료</div>
+        <div class="chip" onclick="filterList('출고완료',this)">출고완료</div>
+      </div>
+      <div id="repair-list"></div>
+    </div>
+
+    <!-- 신규 접수 -->
+    <div class="screen" id="screen-register">
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-user"></i> 고객 정보</div>
+        <div class="form-group">
+          <label class="form-label">고객 이름 *</label>
+          <input class="form-control" type="text" id="f-name" placeholder="홍길동">
+        </div>
+        <div class="form-group">
+          <label class="form-label">연락처 *</label>
+          <input class="form-control" type="tel" id="f-phone" placeholder="010-0000-0000">
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-tool"></i> 제품 정보</div>
+        <div class="form-group">
+          <label class="form-label">제품 종류 *</label>
+          <select class="form-control" id="f-type">
+            <option value="">선택하세요</option>
+            <option>전동드릴</option><option>충전드릴</option><option>그라인더</option>
+            <option>해머드릴</option><option>전기톱</option><option>충전해머드릴</option>
+            <option>충전그라인더</option><option>에어공구</option><option>기타</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">브랜드</label>
+            <input class="form-control" type="text" id="f-brand" placeholder="마끼다">
+          </div>
+          <div class="form-group">
+            <label class="form-label">모델명</label>
+            <input class="form-control" type="text" id="f-model" placeholder="DHP484">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">고장 증상 *</label>
+          <textarea class="form-control" id="f-symptom" rows="3" placeholder="전원이 안 켜짐, 이상한 소리 등 자세히 입력하세요"></textarea>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-camera"></i> 제품 사진</div>
+        <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos(event)">
+        <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
+          <i class="ti ti-camera-plus"></i>
+          <p>사진 촬영 또는 갤러리에서 선택</p>
+        </div>
+        <div class="photo-grid" id="photo-preview"></div>
+      </div>
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-notes"></i> 담당자 / 메모</div>
+        <div class="form-group">
+          <label class="form-label">담당자</label>
+          <select class="form-control" id="f-staff">
+            <option value="">선택 안 함</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">메모</label>
+          <textarea class="form-control" id="f-memo" rows="2" placeholder="직원 전달 메모 (선택)"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="submitRepair()">
+        <i class="ti ti-check"></i> 접수 등록
+      </button>
+    </div>
+
+    <!-- 상세 -->
+    <div class="screen" id="screen-detail">
+      <div id="detail-content"></div>
+    </div>
+
+    <!-- 설정 -->
+    <div class="screen" id="screen-settings">
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-building-store"></i> 업체 정보</div>
+        <div class="form-group">
+          <label class="form-label">업체명</label>
+          <input class="form-control" type="text" id="s-shopname">
+        </div>
+        <div class="form-group">
+          <label class="form-label">내 이름</label>
+          <input class="form-control" type="text" id="s-myname">
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-users"></i> 직원 관리</div>
+        <div class="form-group">
+          <label class="form-label">직원 추가</label>
+          <div style="display:flex;gap:6px;">
+            <input class="form-control" type="text" id="s-staff" placeholder="이름" style="flex:1">
+            <button class="btn btn-primary" style="width:auto;padding:10px 14px;" onclick="addStaff()">추가</button>
+          </div>
+        </div>
+        <div id="staff-list"></div>
+      </div>
+      <div class="form-section">
+        <div class="fs-title"><i class="ti ti-bell"></i> 알림 설정</div>
+        <div class="info-row">
+          <span class="info-key">푸시 알림</span>
+          <button onclick="requestNotifPerm()" class="btn btn-outline" style="width:auto;padding:8px 16px;font-size:12px;">권한 요청</button>
+        </div>
+        <div class="info-row">
+          <span class="info-key" id="notif-status-text">상태: 확인 중...</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-device-floppy"></i> 저장</button>
+      <button class="btn btn-danger" style="margin-top:8px;" onclick="resetConfig()"><i class="ti ti-logout"></i> Firebase 재설정</button>
+    </div>
+
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="showScreen('home',this)">
+      <i class="ti ti-home"></i>홈
+    </button>
+    <button class="nav-item" id="nav-list" onclick="showScreen('list',this)">
+      <i class="ti ti-list-details"></i>목록
+    </button>
+    <button class="nav-item" id="nav-register" onclick="showScreen('register',this)">
+      <i class="ti ti-plus"></i>신규접수
+    </button>
+    <button class="nav-item" id="nav-detail" onclick="showScreen('detail',this)" style="display:none">
+      <i class="ti ti-clipboard-list"></i>수리현황
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="showScreen('settings',this)">
+      <i class="ti ti-settings"></i>설정
+    </button>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="statusModal" onclick="closeModal('statusModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">수리 단계 변경</div>
+    <div style="display:flex;flex-direction:column;gap:8px;" id="status-buttons"></div>
+  </div>
+</div>
+
+<!-- Toast & Loading & In-app notification -->
+<div class="toast" id="toast"></div>
+<div class="loading" id="loading"><div class="spinner"></div><div class="loading-text" id="loading-text">처리 중...</div></div>
+<div class="in-app-notif" id="in-app-notif" onclick="document.getElementById('in-app-notif').classList.remove('show')">
+  <div class="ian-title" id="ian-title"></div>
+  <div class="ian-body" id="ian-body"></div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+
+window._fb = { initializeApp, getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, getMessaging, getToken, onMessage };
+window.dispatchEvent(new Event('fb-ready'));
+</script>
+
+<script>
+// ── Config & State ─────────────────────────────────────
+let cfg = JSON.parse(localStorage.getItem('repair_cfg') || 'null');
+let settings = JSON.parse(localStorage.getItem('repair_settings') || '{"shopname":"공구수리","myname":"","staffs":[]}');
+let repairs = [];
+let notifications = JSON.parse(localStorage.getItem('repair_notifs') || '[]');
+let currentDetailId = null;
+let pendingPhotos = [];
+let currentFilter = '전체';
+let db = null, isDemo = false;
+let deferredInstall = null;
+let unsubscribe = null;
+
+const STATUSES = ['접수완료','견적대기','수리중','완료','출고완료'];
+const STATUS_BADGE = {'접수완료':'badge-gray','견적대기':'badge-amber','수리중':'badge-blue','완료':'badge-green','출고완료':'badge-gray'};
+
+// ── Init ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setToday();
+  setupInstallPrompt();
+  setupOfflineDetect();
+  updateNotifStatus();
+  if (cfg) startApp();
+});
+
+window.addEventListener('fb-ready', () => {
+  if (cfg && !isDemo) initFirebase();
+});
+
+function setToday() {
+  const d = new Date();
+  window._today = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function fmtDate(s){return s?s.replace(/-/g,'.'):''}
+function nowStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+// ── Config / Setup ────────────────────────────────────
+function saveConfig() {
+  const apiKey = document.getElementById('cfg-apiKey').value.trim();
+  const projectId = document.getElementById('cfg-projectId').value.trim();
+  const appId = document.getElementById('cfg-appId').value.trim();
+  const vapid = document.getElementById('cfg-vapid').value.trim();
+  const shopname = document.getElementById('cfg-shopname').value.trim() || '공구수리';
+  const myname = document.getElementById('cfg-myname').value.trim();
+  if (!apiKey || !projectId || !appId) { showToast('필수 항목을 입력하세요'); return; }
+  cfg = { apiKey, projectId, appId, vapid, messagingSenderId: '000000000000' };
+  settings.shopname = shopname;
+  settings.myname = myname;
+  localStorage.setItem('repair_cfg', JSON.stringify(cfg));
+  localStorage.setItem('repair_settings', JSON.stringify(settings));
+  startApp();
+  initFirebase();
+}
+
+function demoMode() {
+  isDemo = true;
+  settings = JSON.parse(localStorage.getItem('repair_settings') || '{"shopname":"공구수리 데모","myname":"관리자","staffs":["김기술","이수리","박담당"]}');
+  repairs = getDemoData();
+  startApp();
+  setConnected(true);
+}
+
+function startApp() {
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('main-app').style.display = 'flex';
+  document.getElementById('shop-name-header').textContent = settings.shopname;
+  renderHome();
+  renderList();
+  loadSettingsUI();
+  loadStaffSelect();
+}
+
+function resetConfig() {
+  if (!confirm('Firebase 설정을 초기화하고 재설정 화면으로 이동할까요?')) return;
+  localStorage.removeItem('repair_cfg');
+  localStorage.removeItem('repair_settings');
+  if (unsubscribe) { try { unsubscribe(); } catch(e){} }
+  db = null; isDemo = false; repairs = [];
+  document.getElementById('main-app').style.display = 'none';
+  const setup = document.getElementById('setup-screen');
+  setup.classList.remove('hidden');
+  ['cfg-apiKey','cfg-projectId','cfg-appId','cfg-vapid','cfg-shopname','cfg-myname'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+// ── Firebase ──────────────────────────────────────────
+function initFirebase() {
+  if (!window._fb || !cfg) return;
+  const { initializeApp, getFirestore, collection, onSnapshot, query, orderBy, getMessaging, getToken, onMessage } = window._fb;
+  try {
+    const app = initializeApp(cfg);
+    db = getFirestore(app);
+    setConnected(true);
+
+    const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
+    unsubscribe = onSnapshot(q, (snap) => {
+      const prev = repairs.map(r=>r.id);
+      repairs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      snap.docChanges().forEach(change => {
+        if (change.type === 'added' && prev.length > 0 && !prev.includes(change.doc.id)) {
+          const r = change.doc.data();
+          pushInAppNotif('새 접수 등록', `${r.name} · ${r.type}`);
+          addNotif('새 접수', `${r.name} 고객 ${r.type} 접수`, 'blue');
+        }
+        if (change.type === 'modified' && prev.includes(change.doc.id)) {
+          const r = change.doc.data();
+          if (r.lastModifiedBy !== settings.myname) {
+            pushInAppNotif('수리 상태 변경', `${r.name} · ${r.type} → ${r.status}`);
+            addNotif('상태 변경', `${r.name} ${r.type} → ${r.status}`, 'amber');
+          }
+        }
+      });
+      renderHome();
+      renderList();
+      if (currentDetailId) renderDetail();
+    }, (err) => { console.error(err); setConnected(false); });
+
+    // FCM
+    if (cfg.vapid) {
+      try {
+        const messaging = getMessaging(app);
+        Notification.requestPermission().then(perm => {
+          if (perm === 'granted') {
+            getToken(messaging, { vapidKey: cfg.vapid }).then(token => {
+              console.log('FCM token:', token);
+            });
+          }
+        });
+        onMessage(messaging, (payload) => {
+          pushInAppNotif(payload.notification?.title || '알림', payload.notification?.body || '');
+          addNotif(payload.notification?.title, payload.notification?.body, 'blue');
+        });
+      } catch(e){ console.warn('FCM 초기화 실패:', e); }
+    }
+  } catch(e) {
+    console.error('Firebase 초기화 실패:', e);
+    setConnected(false);
+    showToast('Firebase 연결 실패. 설정을 확인하세요.');
+  }
+}
+
+function setConnected(ok) {
+  document.getElementById('conn-dot').className = 'conn-dot' + (ok?'':' offline');
+  document.getElementById('conn-text').textContent = ok ? '실시간 연결됨' : '연결 끊김';
+  document.getElementById('offline-banner').className = 'offline-banner' + (ok?'':' show');
+}
+
+// ── CRUD ──────────────────────────────────────────────
+async function submitRepair() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const type = document.getElementById('f-type').value;
+  const symptom = document.getElementById('f-symptom').value.trim();
+  if (!name){ showToast('고객 이름을 입력하세요'); return; }
+  if (!phone){ showToast('연락처를 입력하세요'); return; }
+  if (!type){ showToast('제품 종류를 선택하세요'); return; }
+  if (!symptom){ showToast('고장 증상을 입력하세요'); return; }
+
+  showLoading('접수 등록 중...');
+  const r = {
+    date: nowStr(),
+    name, phone, type,
+    brand: document.getElementById('f-brand').value.trim(),
+    model: document.getElementById('f-model').value.trim(),
+    symptom,
+    memo: document.getElementById('f-memo').value.trim(),
+    staffId: document.getElementById('f-staff').value,
+    photos: pendingPhotos.slice(0,3),
+    status: '접수완료',
+    partCost: '', laborCost: '',
+    lastModifiedBy: settings.myname,
+    history: [{ date: nowStr(), action: '접수완료', by: settings.myname }]
+  };
+
+  try {
+    if (isDemo) {
+      r.id = 'demo-' + Date.now();
+      repairs.unshift(r);
+      addNotif('새 접수', `${r.name} 고객 ${r.type} 접수`, 'blue');
+      pushInAppNotif('새 접수 등록', `${r.name} · ${r.type}`);
+      resetForm();
+      hideLoading();
+      openDetail(r.id);
+    } else {
+      const { collection, addDoc, serverTimestamp } = window._fb;
+      r.createdAt = serverTimestamp();
+      const ref = await addDoc(collection(db, 'repairs'), r);
+      resetForm();
+      hideLoading();
+      openDetail(ref.id);
+    }
+    showToast('접수 등록 완료');
+  } catch(e) {
+    hideLoading();
+    showToast('저장 실패: ' + e.message);
+  }
+}
+
+async function saveEstimate() {
+  const r = repairs.find(x=>x.id===currentDetailId);
+  if (!r) return;
+  const partCost = document.getElementById('d-part').value;
+  const laborCost = document.getElementById('d-labor').value;
+  r.partCost = partCost;
+  r.laborCost = laborCost;
+  const newStatus = r.status === '접수완료' ? '견적대기' : r.status;
+  r.status = newStatus;
+  r.lastModifiedBy = settings.myname;
+  if (!r.history) r.history = [];
+  r.history.push({ date: nowStr(), action: '견적 입력', by: settings.myname });
+
+  try {
+    if (!isDemo) {
+      const { doc, updateDoc } = window._fb;
+      await updateDoc(doc(db,'repairs',r.id), { partCost, laborCost, status: newStatus, lastModifiedBy: r.lastModifiedBy, history: r.history });
+    }
+    showToast('견적 저장 완료');
+    renderDetail();
+  } catch(e){ showToast('저장 실패'); }
+}
+
+async function changeStatus(status) {
+  const r = repairs.find(x=>x.id===currentDetailId);
+  if (!r) return;
+  r.status = status;
+  r.lastModifiedBy = settings.myname;
+  if (!r.history) r.history = [];
+  r.history.push({ date: nowStr(), action: status, by: settings.myname });
+  closeModal('statusModal');
+  try {
+    if (!isDemo) {
+      const { doc, updateDoc } = window._fb;
+      await updateDoc(doc(db,'repairs',r.id), { status, lastModifiedBy: r.lastModifiedBy, history: r.history });
+    }
+    showToast('상태 변경: ' + status);
+    renderDetail();
+  } catch(e){ showToast('변경 실패'); }
+}
+
+async function deleteRepair() {
+  if (!confirm('이 접수를 삭제하시겠습니까?')) return;
+  try {
+    if (!isDemo) {
+      const { doc, deleteDoc } = window._fb;
+      await deleteDoc(doc(db,'repairs',currentDetailId));
+    } else {
+      repairs = repairs.filter(x=>x.id!==currentDetailId);
+    }
+    showToast('접수 삭제 완료');
+    document.getElementById('nav-detail').style.display='none';
+    showScreen('list');
+  } catch(e){ showToast('삭제 실패'); }
+}
+
+// ── Render ────────────────────────────────────────────
+function renderHome() {
+  const today = window._today || nowStr();
+  document.getElementById('stat-total').textContent = repairs.length;
+  document.getElementById('stat-estimate').textContent = repairs.filter(r=>r.status==='견적대기').length;
+  document.getElementById('stat-done').textContent = repairs.filter(r=>r.status==='완료'||r.status==='출고완료').length;
+  document.getElementById('stat-today').textContent = repairs.filter(r=>r.date===today).length;
+  const el = document.getElementById('home-list');
+  const list = repairs.slice(0,10);
+  el.innerHTML = list.length ? list.map(repairItemHtml).join('') : '<div class="empty"><i class="ti ti-inbox"></i><p>접수된 수리가 없습니다</p></div>';
+}
+
+function renderList() {
+  const filtered = currentFilter==='전체' ? repairs : repairs.filter(r=>r.status===currentFilter);
+  const el = document.getElementById('repair-list');
+  if (!filtered.length){ el.innerHTML='<div class="empty"><i class="ti ti-inbox"></i><p>해당하는 접수가 없습니다</p></div>'; return; }
+  const groups = {};
+  filtered.forEach(r=>{ if(!groups[r.date])groups[r.date]=[]; groups[r.date].push(r); });
+  let html='';
+  Object.keys(groups).sort((a,b)=>b>a?1:-1).forEach(date=>{
+    html+=`<div class="date-label"><i class="ti ti-calendar" style="font-size:11px;"></i> ${fmtDate(date)}</div>`;
+    html+=groups[date].map(repairItemHtml).join('');
+  });
+  el.innerHTML = html;
+}
+
+function filterList(status, el) {
+  currentFilter = status;
+  document.querySelectorAll('#filter-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function repairItemHtml(r) {
+  const price = (r.partCost||r.laborCost) ? '₩'+((parseInt(r.partCost)||0)+(parseInt(r.laborCost)||0)).toLocaleString() : '견적 전';
+  const staff = r.staffId ? `<span style="font-size:11px;color:var(--primary);margin-left:6px;"><i class="ti ti-user" style="font-size:11px;"></i> ${r.staffId}</span>` : '';
+  return `<div class="repair-item" onclick="openDetail('${r.id}')">
+    <div class="ri-header">
+      <div>
+        <div class="ri-num">#${r.date} ${staff}</div>
+        <div class="ri-name">${r.name}</div>
+        <div class="ri-product"><i class="ti ti-tool" style="font-size:12px;"></i> ${r.type}${r.brand?' / '+r.brand:''}${r.model?' '+r.model:''}</div>
+      </div>
+      <span class="badge ${STATUS_BADGE[r.status]}">${r.status}</span>
+    </div>
+    <div class="ri-meta">
+      <span class="ri-date"><i class="ti ti-calendar-event"></i> ${fmtDate(r.date)} 입고</span>
+      <span class="ri-price">${price}</span>
+    </div>
+  </div>`;
+}
+
+// ── Detail ────────────────────────────────────────────
+function openDetail(id) {
+  currentDetailId = id;
+  document.getElementById('nav-detail').style.display='flex';
+  renderDetail();
+  showScreen('detail');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-detail').classList.add('active');
+}
+
+function renderDetail() {
+  const r = repairs.find(x=>x.id===currentDetailId);
+  if (!r){ document.getElementById('detail-content').innerHTML='<div class="empty"><i class="ti ti-alert-circle"></i><p>접수를 찾을 수 없습니다</p></div>'; return; }
+  const total=(parseInt(r.partCost)||0)+(parseInt(r.laborCost)||0);
+  const statusIdx=STATUSES.indexOf(r.status);
+  const stepHtml=STATUSES.slice(0,4).map((s,i)=>{
+    const cls=i<statusIdx?'done':i===statusIdx?'current':'';
+    const icons=['ti-clipboard','ti-file-description','ti-tool','ti-package'];
+    const icon=i<statusIdx?'ti-check':icons[i];
+    const line=i<3?`<div class="step-line ${i<statusIdx?'done':''}"></div>`:'';
+    return `<div class="step-col"><div class="step-circle ${cls}"><i class="ti ${icon}" style="font-size:13px;"></i></div><div class="step-text ${cls?'active':''}">${s}</div></div>${line}`;
+  }).join('');
+  const photosHtml=r.photos&&r.photos.length?`<div class="detail-photos">${r.photos.map(src=>`<div class="detail-photo"><img src="${src}"></div>`).join('')}</div>`:`<div class="detail-photos"><div class="detail-photo"><div class="no-photo"><i class="ti ti-photo-off"></i><span>사진 없음</span></div></div></div>`;
+  const histHtml=(r.history||[]).map(h=>`<div class="info-row"><span class="info-key">${fmtDate(h.date)}${h.by?' · '+h.by:''}</span><span class="info-val">${h.action}</span></div>`).join('');
+
+  document.getElementById('detail-content').innerHTML=`
+    <div class="card"><div class="detail-info">
+      <div class="detail-top">
+        <div>
+          <div class="detail-num">#${r.date} 입고</div>
+          <div class="detail-name">${r.name}</div>
+          <div class="detail-phone"><i class="ti ti-phone" style="font-size:13px;"></i>${r.phone}</div>
+          ${r.staffId?`<div style="font-size:12px;color:var(--primary);margin-top:4px;"><i class="ti ti-user-check" style="font-size:12px;"></i> 담당: ${r.staffId}</div>`:''}
+        </div>
+        <span class="badge ${STATUS_BADGE[r.status]}">${r.status}</span>
+      </div>
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">수리 진행 단계</div>
+        <div class="stepper">${stepHtml}</div>
+      </div>
+    </div></div>
+    <div class="card card-pad">
+      <div style="font-size:13px;font-weight:600;color:var(--text-sub);margin-bottom:10px;"><i class="ti ti-tool" style="color:var(--primary);"></i> 제품 정보</div>
+      <div class="info-row"><span class="info-key">종류</span><span class="info-val">${r.type}</span></div>
+      <div class="info-row"><span class="info-key">브랜드</span><span class="info-val">${r.brand||'-'}</span></div>
+      <div class="info-row"><span class="info-key">모델명</span><span class="info-val">${r.model||'-'}</span></div>
+      <div class="info-row"><span class="info-key">고장 증상</span><span class="info-val">${r.symptom}</span></div>
+    </div>
+    <div class="card card-pad">
+      <div style="font-size:13px;font-weight:600;color:var(--text-sub);margin-bottom:10px;"><i class="ti ti-camera" style="color:var(--primary);"></i> 제품 사진</div>
+      ${photosHtml}
+    </div>
+    <div class="card card-pad">
+      <div style="font-size:13px;font-weight:600;color:var(--text-sub);margin-bottom:10px;"><i class="ti ti-calculator" style="color:var(--primary);"></i> 견적 / 수리비</div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="form-group"><label class="form-label">부품비 (원)</label><input class="form-control" type="number" id="d-part" value="${r.partCost||''}" placeholder="0" oninput="updateTotal()"></div>
+        <div class="form-group"><label class="form-label">공임비 (원)</label><input class="form-control" type="number" id="d-labor" value="${r.laborCost||''}" placeholder="0" oninput="updateTotal()"></div>
+      </div>
+      <div class="estimate-total">
+        <span class="estimate-total-label">합계</span>
+        <span class="estimate-total-val" id="d-total">₩${total.toLocaleString()}</span>
+      </div>
+      <button class="btn btn-outline" style="margin-top:8px;" onclick="saveEstimate()"><i class="ti ti-device-floppy"></i> 견적 저장</button>
+    </div>
+    ${r.memo?`<div class="card card-pad"><div style="font-size:13px;font-weight:600;color:var(--text-sub);margin-bottom:8px;"><i class="ti ti-notes" style="color:var(--primary);"></i> 메모</div><div class="memo-box">${r.memo}</div></div>`:''}
+    <div class="card card-pad">
+      <div style="font-size:13px;font-weight:600;color:var(--text-sub);margin-bottom:10px;"><i class="ti ti-history" style="color:var(--primary);"></i> 진행 이력</div>
+      ${histHtml||'<div style="font-size:13px;color:var(--text-sub);">이력 없음</div>'}
+    </div>
+    <div style="margin-top:4px;">
+      <button class="btn btn-primary" onclick="showStatusModal()"><i class="ti ti-refresh"></i> 수리 단계 변경</button>
+      <button class="btn btn-danger" onclick="deleteRepair()"><i class="ti ti-trash"></i> 접수 삭제</button>
+    </div>`;
+}
+
+function updateTotal() {
+  const p=parseInt(document.getElementById('d-part').value)||0;
+  const l=parseInt(document.getElementById('d-labor').value)||0;
+  document.getElementById('d-total').textContent='₩'+(p+l).toLocaleString();
+}
+
+function showStatusModal() {
+  const r=repairs.find(x=>x.id===currentDetailId);
+  if(!r)return;
+  document.getElementById('status-buttons').innerHTML=
+    STATUSES.filter(s=>s!==r.status).map(s=>`<button class="btn btn-outline" onclick="changeStatus('${s}')"><i class="ti ti-arrow-right"></i> ${s}로 변경</button>`).join('');
+  showModal('statusModal');
+}
+
+// ── Photos ────────────────────────────────────────────
+function handlePhotos(e) {
+  const files=Array.from(e.target.files);
+  const rem=3-pendingPhotos.length;
+  files.slice(0,rem).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{pendingPhotos.push(ev.target.result);renderPhotoPreview();};
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+function renderPhotoPreview() {
+  const el=document.getElementById('photo-preview');
+  el.innerHTML=pendingPhotos.map((src,i)=>`<div class="photo-thumb"><img src="${src}"><button class="rm-photo" onclick="removePhoto(${i})"><i class="ti ti-x"></i></button></div>`).join('');
+  if(pendingPhotos.length<3) el.innerHTML+=`<div class="photo-thumb" style="border:2px dashed var(--border);background:var(--gray-light);" onclick="document.getElementById('photo-input').click()"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><i class="ti ti-plus" style="font-size:20px;color:var(--text-sub);"></i></div></div>`;
+}
+function removePhoto(i){pendingPhotos.splice(i,1);renderPhotoPreview();}
+
+function resetForm() {
+  ['f-name','f-phone','f-symptom','f-memo','f-brand','f-model'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-type').value='';
+  document.getElementById('f-staff').value='';
+  pendingPhotos=[];
+  document.getElementById('photo-preview').innerHTML='';
+}
+
+// ── Notifications ─────────────────────────────────────
+function addNotif(title, body, type) {
+  notifications.unshift({ title, body, type, time: new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}), read: false });
+  if (notifications.length > 50) notifications.pop();
+  localStorage.setItem('repair_notifs', JSON.stringify(notifications));
+  document.getElementById('notif-dot').classList.add('show');
+  renderNotifPanel();
+}
+
+function renderNotifPanel() {
+  const el=document.getElementById('notif-list');
+  if(!notifications.length){el.innerHTML='<div class="notif-empty">알림이 없습니다</div>';return;}
+  el.innerHTML=notifications.map(n=>`<div class="notif-item ${n.read?'':'unread'}">
+    <div class="notif-title">${n.title}</div>
+    <div class="notif-body">${n.body}</div>
+    <div class="notif-time">${n.time}</div>
+  </div>`).join('');
+}
+
+function toggleNotif() {
+  const panel=document.getElementById('notif-panel');
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open')){
+    notifications=notifications.map(n=>({...n,read:true}));
+    localStorage.setItem('repair_notifs',JSON.stringify(notifications));
+    document.getElementById('notif-dot').classList.remove('show');
+    renderNotifPanel();
+  }
+}
+
+function clearNotifs() {
+  notifications=[];
+  localStorage.setItem('repair_notifs',JSON.stringify(notifications));
+  renderNotifPanel();
+}
+
+function pushInAppNotif(title, body) {
+  const el=document.getElementById('in-app-notif');
+  document.getElementById('ian-title').textContent=title;
+  document.getElementById('ian-body').textContent=body;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 4000);
+
+  if (Notification.permission==='granted') {
+    try{ new Notification(title,{body,icon:'icon-192.svg'}); }catch(e){}
+  }
+}
+
+function requestNotifPerm() {
+  Notification.requestPermission().then(p=>{
+    updateNotifStatus();
+    showToast(p==='granted'?'알림 권한이 허용되었습니다':'알림이 차단되었습니다');
+  });
+}
+
+function updateNotifStatus() {
+  const el=document.getElementById('notif-status-text');
+  if(!el)return;
+  const map={'granted':'허용됨','denied':'차단됨','default':'요청 전'};
+  el.textContent='상태: ' + (map[Notification.permission]||'미지원');
+}
+
+// ── Settings ──────────────────────────────────────────
+function loadSettingsUI() {
+  document.getElementById('s-shopname').value=settings.shopname||'';
+  document.getElementById('s-myname').value=settings.myname||'';
+  renderStaffList();
+  updateNotifStatus();
+}
+function renderStaffList() {
+  const el=document.getElementById('staff-list');
+  if(!settings.staffs||!settings.staffs.length){el.innerHTML='';return;}
+  el.innerHTML=settings.staffs.map((s,i)=>`<div class="info-row"><span class="info-key"><i class="ti ti-user" style="font-size:14px;"></i> ${s}</span><button onclick="removeStaff(${i})" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;"><i class="ti ti-trash"></i> 삭제</button></div>`).join('');
+}
+function addStaff(){
+  const v=document.getElementById('s-staff').value.trim();
+  if(!v)return;
+  if(!settings.staffs)settings.staffs=[];
+  settings.staffs.push(v);
+  document.getElementById('s-staff').value='';
+  renderStaffList();
+  loadStaffSelect();
+}
+function removeStaff(i){settings.staffs.splice(i,1);renderStaffList();loadStaffSelect();}
+function saveSettings(){
+  settings.shopname=document.getElementById('s-shopname').value.trim()||'공구수리';
+  settings.myname=document.getElementById('s-myname').value.trim();
+  localStorage.setItem('repair_settings',JSON.stringify(settings));
+  document.getElementById('shop-name-header').textContent=settings.shopname;
+  showToast('설정 저장 완료');
+}
+function loadStaffSelect(){
+  const sel=document.getElementById('f-staff');
+  if(!sel)return;
+  sel.innerHTML='<option value="">선택 안 함</option>'+((settings.staffs||[]).map(s=>`<option value="${s}">${s}</option>`).join(''));
+}
+
+// ── Screen nav ────────────────────────────────────────
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  const nb=btn||document.getElementById('nav-'+name);
+  if(nb)nb.classList.add('active');
+  document.getElementById('notif-panel').classList.remove('open');
+  if(name==='home')renderHome();
+  if(name==='list')renderList();
+  if(name==='settings'){loadSettingsUI();}
+}
+
+// ── Modal ─────────────────────────────────────────────
+function showModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ── Toast / Loading ───────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+function showLoading(msg){
+  document.getElementById('loading-text').textContent=msg||'처리 중...';
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading(){document.getElementById('loading').classList.remove('show');}
+
+// ── PWA Install ───────────────────────────────────────
+function setupInstallPrompt(){
+  window.addEventListener('beforeinstallprompt', e=>{
+    e.preventDefault();
+    deferredInstall=e;
+    document.getElementById('install-banner').classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled',()=>{
+    document.getElementById('install-banner').classList.add('hidden');
+    showToast('앱이 설치되었습니다!');
+  });
+}
+function installApp(){
+  if(!deferredInstall)return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(r=>{
+    if(r.outcome==='accepted') document.getElementById('install-banner').classList.add('hidden');
+    deferredInstall=null;
+  });
+}
+
+// ── Offline detect ────────────────────────────────────
+function setupOfflineDetect(){
+  window.addEventListener('online',()=>setConnected(true));
+  window.addEventListener('offline',()=>setConnected(false));
+}
+
+// ── Demo data ─────────────────────────────────────────
+function getDemoData(){
+  const today=nowStr();
+  const yest=new Date();yest.setDate(yest.getDate()-1);
+  const y=yest.getFullYear()+'-'+String(yest.getMonth()+1).padStart(2,'0')+'-'+String(yest.getDate()).padStart(2,'0');
+  return [
+    {id:'demo-1',date:today,name:'김철수',phone:'010-1234-5678',type:'전동드릴',brand:'마끼다',model:'18V DHP484',symptom:'전원이 안 켜짐',status:'견적대기',partCost:'20000',laborCost:'25000',staffId:'김기술',photos:[],memo:'',history:[{date:today,action:'접수완료',by:'이수리'},{date:today,action:'견적 입력',by:'김기술'}]},
+    {id:'demo-2',date:today,name:'이영희',phone:'010-9876-5432',type:'그라인더',brand:'보쉬',model:'750W',symptom:'이상한 소리 남',status:'수리중',partCost:'',laborCost:'',staffId:'이수리',photos:[],memo:'급하다고 함',history:[{date:today,action:'접수완료',by:'박담당'}]},
+    {id:'demo-3',date:y,name:'박민준',phone:'010-5555-1234',type:'충전해머드릴',brand:'히타치',model:'DH18DSL',symptom:'배터리 충전 안 됨',status:'완료',partCost:'35000',laborCost:'20000',staffId:'박담당',photos:[],memo:'',history:[{date:y,action:'접수완료',by:'이수리'},{date:y,action:'견적 입력',by:'박담당'},{date:today,action:'완료',by:'박담당'}]},
+    {id:'demo-4',date:y,name:'최동욱',phone:'010-7777-2222',type:'전기톱',brand:'스틸',model:'MS180',symptom:'체인 끊어짐',status:'출고완료',partCost:'45000',laborCost:'15000',staffId:'',photos:[],memo:'',history:[{date:y,action:'접수완료',by:'이수리'},{date:today,action:'출고완료',by:'이수리'}]},
+  ];
+}
+
+// ── SW Register ───────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
